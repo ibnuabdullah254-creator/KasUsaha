@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>KasUsaha - Kasir UMKM Kuliner</title>
+  <title>KasUsaha - Kasir & Keuangan UMKM</title>
   
-  <!-- Pengaturan PWA agar bisa diinstal di HP -->
   <meta name="theme-color" content="#1976D2">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,10 +13,10 @@
   <style>
     :root {
       --primary: #1976D2;
-      --primary-light: #E3F2FD;
       --success: #2E7D32;
       --danger: #C62828;
       --warning: #EF6C00;
+      --info: #0288D1;
       --bg: #F5F7FA;
       --surface: #FFFFFF;
       --text: #212121;
@@ -27,58 +26,52 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background: var(--bg); color: var(--text); padding-bottom: 75px; user-select: none; }
     
-    /* Header */
     header { background: var(--primary); color: white; padding: 16px; position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     header h1 { font-size: 18px; font-weight: 600; }
     
-    /* Layout */
     .container { padding: 16px; max-width: 600px; margin: auto; }
     .screen { display: none; }
     .screen.active { display: block; }
     
-    /* Card */
     .card { background: var(--surface); border-radius: 14px; padding: 16px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid var(--border); }
     .card-balance { background: linear-gradient(135deg, #1976D2, #1565C0); color: white; border: none; }
     .card-balance h2 { font-size: 26px; margin-top: 4px; }
     
-    /* Grid */
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
     .metric-box { background: var(--surface); padding: 12px; border-radius: 10px; border: 1px solid var(--border); }
     .metric-box .label { font-size: 12px; color: var(--text-muted); }
     .metric-box .val { font-size: 15px; font-weight: 700; margin-top: 4px; }
     
-    /* Alert */
     .alert-box { background: #FFF3E0; border-left: 4px solid var(--warning); padding: 12px; border-radius: 8px; margin-bottom: 14px; font-size: 13px; }
     .alert-box strong { color: var(--warning); display: block; margin-bottom: 4px; }
     
-    /* Form */
     label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #424242; }
     input, select, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 12px; font-size: 14px; outline: none; }
     input:focus, select:focus { border-color: var(--primary); }
     
-    /* Buttons */
     .btn { width: 100%; padding: 12px; border-radius: 8px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; text-align: center; }
     .btn-primary { background: var(--primary); color: white; }
-    .btn-success { background: var(--success); color: white; }
     .btn-danger { background: var(--danger); color: white; }
     .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
     
-    /* Chips */
     .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; }
     .chip { padding: 6px 14px; border-radius: 20px; font-size: 12px; background: #EEE; border: none; cursor: pointer; white-space: nowrap; }
     .chip.active { background: var(--primary); color: white; }
+    .chip-danger.active { background: var(--danger); color: white; }
+    .chip-success.active { background: var(--success); color: white; }
     
-    /* List items */
     .item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); }
     .item-row:last-child { border-bottom: none; }
     
-    /* Bottom Navigation */
+    /* Progress bar breakdown */
+    .bar-container { background: #EEEEEE; height: 10px; border-radius: 5px; overflow: hidden; display: flex; margin: 8px 0 12px 0; }
+    .bar-part { height: 100%; }
+
     nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); display: flex; border-top: 1px solid var(--border); z-index: 100; }
     nav button { flex: 1; padding: 10px 0; background: none; border: none; display: flex; flex-direction: column; align-items: center; font-size: 11px; color: var(--text-muted); cursor: pointer; }
     nav button.active { color: var(--primary); font-weight: 700; }
     nav button svg { width: 22px; height: 22px; margin-bottom: 3px; fill: currentColor; }
 
-    /* Modal / Pop-up */
     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; justify-content: center; align-items: center; padding: 16px; }
     .modal.active { display: flex; }
     .modal-content { background: white; width: 100%; max-width: 450px; border-radius: 12px; padding: 18px; max-height: 90vh; overflow-y: auto; }
@@ -96,13 +89,13 @@
     <!-- 1. DASHBOARD -->
     <section id="screen-dashboard" class="screen active">
       <div class="card card-balance">
-        <div style="font-size: 13px; opacity: 0.85;">Saldo Kas Usaha</div>
+        <div style="font-size: 13px; opacity: 0.85;">Saldo Kas Saat Ini</div>
         <h2 id="dashSaldo">Rp 0</h2>
       </div>
 
       <div class="grid-2">
         <div class="metric-box">
-          <div class="label">Total Penjualan</div>
+          <div class="label">Total Pemasukan</div>
           <div class="val" id="dashPenjualan" style="color: var(--success);">Rp 0</div>
         </div>
         <div class="metric-box">
@@ -112,7 +105,7 @@
       </div>
 
       <div class="card" style="margin-bottom: 14px;">
-        <div style="font-size: 12px; color: var(--text-muted);">Estimasi Laba Bersih</div>
+        <div style="font-size: 12px; color: var(--text-muted);">Estimasi Keuntungan Bersih</div>
         <div id="dashLaba" style="font-size: 20px; font-weight: 800; margin-top: 4px;">Rp 0</div>
       </div>
 
@@ -137,20 +130,33 @@
         
         <label>Jenis Transaksi:</label>
         <div class="chips">
-          <button class="chip active" onclick="setTransType('PENJUALAN', this)">Penjualan</button>
-          <button class="chip" onclick="setTransType('BELANJA_STOK', this)">Belanja Stok</button>
-          <button class="chip" onclick="setTransType('OPERASIONAL', this)">Operasional</button>
-          <button class="chip" onclick="setTransType('PEMASUKAN_LAIN', this)">Pemasukan Lain</button>
-          <button class="chip" onclick="setTransType('BARANG_RUSAK', this)">Barang Rusak</button>
+          <button class="chip active chip-success" onclick="setTransType('PENJUALAN', this)">+ Penjualan</button>
+          <button class="chip chip-danger" onclick="setTransType('BELANJA_STOK', this)">- Belanja Stok</button>
+          <button class="chip chip-danger" onclick="setTransType('OPERASIONAL', this)">- Operasional</button>
+          <button class="chip chip-success" onclick="setTransType('PEMASUKAN_LAIN', this)">+ Pemasukan Lain</button>
+          <button class="chip chip-danger" onclick="setTransType('BARANG_RUSAK', this)">- Barang Rusak</button>
         </div>
 
-        <label>Kasir / Pegawai yang Bertugas:</label>
+        <label>Kasir / Pegawai yang Mencatat:</label>
         <div class="chips" id="staffChips"></div>
 
+        <!-- Opsi Cepat Pengeluaran Operasional -->
+        <div id="opsCategoryWrapper" style="display: none;">
+          <label>Pilihan Kategori Pengeluaran:</label>
+          <div class="chips">
+            <button type="button" class="chip" onclick="setQuickOps('Bahan/Bumbu Dapur')">Bumbu/Bahan</button>
+            <button type="button" class="chip" onclick="setQuickOps('Gas & Air Galon')">Gas & Air</button>
+            <button type="button" class="chip" onclick="setQuickOps('Kemasan/Plastik/Cup')">Kemasan</button>
+            <button type="button" class="chip" onclick="setQuickOps('Listrik & Internet')">Listrik</button>
+            <button type="button" class="chip" onclick="setQuickOps('Sewa/Kebersihan')">Sewa/Kebersihan</button>
+          </div>
+        </div>
+
+        <!-- Pilihan Produk/Menu -->
         <div id="productSelectWrapper">
-          <label>Pilih Menu / Item Terkait (Opsional):</label>
+          <label>Menu / Item Terkait:</label>
           <select id="transProduct" onchange="onProductSelectChange()">
-            <option value="">-- Tanpa Item Produk --</option>
+            <option value="">-- Tanpa Item Terdaftar --</option>
           </select>
           <div id="qtyWrapper" style="display: none;">
             <label id="qtyLabel">Jumlah Porsi / Satuan:</label>
@@ -159,7 +165,7 @@
         </div>
 
         <label>Nominal Rupiah (Rp):</label>
-        <input type="number" id="transAmount" placeholder="Contoh: 25000">
+        <input type="number" id="transAmount" placeholder="Contoh: 15000">
 
         <label>Metode Pembayaran:</label>
         <div class="chips" id="paymentChips">
@@ -168,48 +174,68 @@
           <button class="chip" onclick="setPaymentMethod('Transfer', this)">Transfer</button>
         </div>
 
-        <label>Catatan Tambahan (Opsional):</label>
-        <input type="text" id="transNote" placeholder="Keterangan singkat...">
+        <label>Catatan / Keterangan:</label>
+        <input type="text" id="transNote" placeholder="Contoh: Beli es batu, titip jual, dll.">
 
         <button class="btn btn-primary" onclick="submitTransaction()">Simpan Transaksi</button>
       </div>
     </section>
 
-    <!-- 4. LAPORAN -->
+    <!-- 4. LAPORAN & PENGELUARAN LENGKAP -->
     <section id="screen-laporan" class="screen">
+      <!-- Filter Rentang Waktu -->
       <div class="chips">
-        <button class="chip active" onclick="filterReport(1, this)">Hari Ini</button>
-        <button class="chip" onclick="filterReport(7, this)">7 Hari</button>
-        <button class="chip" onclick="filterReport(30, this)">30 Hari</button>
-        <button class="chip" onclick="filterReport(0, this)">Semua</button>
+        <button class="chip active" onclick="filterReportDays(1, this)">Hari Ini</button>
+        <button class="chip" onclick="filterReportDays(7, this)">7 Hari</button>
+        <button class="chip" onclick="filterReportDays(30, this)">30 Hari</button>
+        <button class="chip" onclick="filterReportDays(0, this)">Semua</button>
       </div>
 
+      <!-- Ringkasan Kas -->
       <div class="card">
-        <h4 style="font-size: 14px; margin-bottom: 8px;">Ringkasan Periode</h4>
-        <div style="font-size: 13px; margin-bottom: 4px;">Pemasukan: <b id="repMasuk" style="color: var(--success);">Rp 0</b></div>
-        <div style="font-size: 13px; margin-bottom: 6px;">Pengeluaran: <b id="repKeluar" style="color: var(--danger);">Rp 0</b></div>
+        <h4 style="font-size: 14px; margin-bottom: 8px;">Ringkasan Keuangan</h4>
+        <div style="font-size: 13px; margin-bottom: 4px;">Total Pemasukan: <b id="repMasuk" style="color: var(--success);">Rp 0</b></div>
+        <div style="font-size: 13px; margin-bottom: 6px;">Total Pengeluaran: <b id="repKeluar" style="color: var(--danger);">Rp 0</b></div>
         <hr style="border: none; border-top: 1px solid var(--border); margin: 6px 0;">
-        <div style="font-size: 14px;">Selisih Kas: <b id="repSelisih">Rp 0</b></div>
+        <div style="font-size: 14px;">Selisih Bersih: <b id="repSelisih">Rp 0</b></div>
       </div>
 
-      <!-- Grafik Batang Sederhana -->
-      <div class="card">
-        <h4 style="font-size: 14px; margin-bottom: 12px;">Perbandingan Arus Kas</h4>
-        <div style="display: flex; height: 110px; align-items: flex-end; justify-content: space-around; padding-bottom: 6px;">
-          <div style="text-align: center; width: 45%;">
-            <div id="chartBarInflow" style="background: var(--success); width: 100%; border-radius: 6px 6px 0 0; min-height: 8px; height: 8px;"></div>
-            <div style="font-size: 11px; margin-top: 6px;">Masuk</div>
-          </div>
-          <div style="text-align: center; width: 45%;">
-            <div id="chartBarOutflow" style="background: var(--danger); width: 100%; border-radius: 6px 6px 0 0; min-height: 8px; height: 8px;"></div>
-            <div style="font-size: 11px; margin-top: 6px;">Keluar</div>
-          </div>
+      <!-- RINCIAN KHUSUS PENGELUARAN -->
+      <div class="card" style="border-left: 4px solid var(--danger);">
+        <h4 style="font-size: 14px; color: var(--danger); margin-bottom: 8px;">📊 Rincian Pos Pengeluaran</h4>
+        
+        <div class="bar-container">
+          <div id="barStok" class="bar-part" style="background: #E53935; width: 0%;"></div>
+          <div id="barOps" class="bar-part" style="background: #FB8C00; width: 0%;"></div>
+          <div id="barRugi" class="bar-part" style="background: #757575; width: 0%;"></div>
+        </div>
+
+        <div style="font-size: 12px; display: flex; justify-content: space-between; margin-bottom: 4px;">
+          <span>🔴 Belanja Stok Bahan:</span>
+          <b id="expBelanjaStok">Rp 0</b>
+        </div>
+        <div style="font-size: 12px; display: flex; justify-content: space-between; margin-bottom: 4px;">
+          <span>🟠 Biaya Operasional:</span>
+          <b id="expOperasional">Rp 0</b>
+        </div>
+        <div style="font-size: 12px; display: flex; justify-content: space-between;">
+          <span>⚪ Kerugian Barang Rusak:</span>
+          <b id="expBarangRusak">Rp 0</b>
         </div>
       </div>
 
-      <button class="btn btn-outline" style="margin-bottom: 14px;" onclick="exportCSV()">📥 Ekspor Laporan ke CSV</button>
+      <button class="btn btn-outline" style="margin-bottom: 14px;" onclick="exportCSV()">📥 Unduh Laporan Lengkap (.CSV)</button>
 
-      <h4 style="font-size: 14px; margin-bottom: 8px;">Riwayat Transaksi</h4>
+      <!-- TAB FILTER TRANSAKSI: SEMUA / MASUK / KELUAR -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <h4 style="font-size: 14px;">Daftar Transaksi</h4>
+        <div class="chips" style="margin-bottom: 0; padding-bottom: 0;">
+          <button class="chip active" onclick="setHistoryView('ALL', this)">Semua</button>
+          <button class="chip" onclick="setHistoryView('EXPENSE', this)" style="color: var(--danger);">Pengeluaran</button>
+          <button class="chip" onclick="setHistoryView('INCOME', this)" style="color: var(--success);">Pemasukan</button>
+        </div>
+      </div>
+
       <div class="card" id="transactionListContainer" style="padding: 0;"></div>
     </section>
 
@@ -217,7 +243,7 @@
     <section id="screen-pengaturan" class="screen">
       <div class="card">
         <h4 style="font-size: 15px; margin-bottom: 8px;">Pegawai / Kasir yang Bertugas</h4>
-        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">HP dipakai bergantian, tambahkan nama staf yang bekerja di sini.</p>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">HP dipakai bergantian, daftarkan nama pegawai di sini.</p>
         <div style="display: flex; gap: 8px; margin-bottom: 10px;">
           <input type="text" id="newStaffInput" placeholder="Nama Pegawai Baru" style="margin-bottom: 0;">
           <button class="btn btn-primary" style="width: auto; padding: 0 16px;" onclick="addStaff()">Tambah</button>
@@ -226,8 +252,8 @@
       </div>
 
       <div class="card">
-        <h4 style="font-size: 15px; margin-bottom: 6px;">Pencadangan Data (Cadangkan & Pulihkan)</h4>
-        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Simpan cadangan ke memori HP agar data kas aman saat ganti perangkat.</p>
+        <h4 style="font-size: 15px; margin-bottom: 6px;">Pencadangan Data</h4>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Simpan berkas cadangan agar data kas usaha tidak hilang saat ganti HP.</p>
         <button class="btn btn-primary" style="margin-bottom: 10px;" onclick="backupJSON()">💾 Cadangkan Data (Backup JSON)</button>
         <button class="btn btn-outline" onclick="document.getElementById('restoreFileInput').click()">📂 Pulihkan Data (Restore JSON)</button>
         <input type="file" id="restoreFileInput" style="display: none;" accept=".json" onchange="restoreJSON(event)">
@@ -242,10 +268,10 @@
       <h3 id="productModalTitle" style="margin-bottom: 14px; font-size: 16px;">Tambah Menu / Bahan</h3>
       <input type="hidden" id="prodId">
       <label>Nama Menu / Bahan:</label>
-      <input type="text" id="prodName" placeholder="Contoh: Es Teh Manis / Ayam Fillet">
+      <input type="text" id="prodName" placeholder="Contoh: Ayam Geprek / Gula Pasir">
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
         <div>
-          <label>Stok Saat Ini:</label>
+          <label>Stok Awal:</label>
           <input type="number" id="prodStock" placeholder="0">
         </div>
         <div>
@@ -254,9 +280,9 @@
         </div>
       </div>
       <label>Harga Modal (HPP Rp):</label>
-      <input type="number" id="prodCost" placeholder="Contoh: 4000">
+      <input type="number" id="prodCost" placeholder="Contoh: 10000">
       <label>Harga Jual (Rp):</label>
-      <input type="number" id="prodSell" placeholder="Contoh: 8000">
+      <input type="number" id="prodSell" placeholder="Contoh: 15000">
       <label>Batas Peringatan Stok Menipis:</label>
       <input type="number" id="prodMinAlert" value="5">
       <div style="display: flex; gap: 8px; margin-top: 10px;">
@@ -303,7 +329,6 @@
   </nav>
 
   <script>
-    // --- PENYIMPANAN PERSISTEN LOKAL (LOCALSTORAGE) ---
     const DB_KEY = 'KASUSAHA_DATABASE';
     let appData = {
       products: [],
@@ -329,16 +354,15 @@
       renderStaff();
     }
 
-    // --- FORMATTER ---
     function toRupiah(num) {
       return "Rp " + Math.round(num || 0).toLocaleString('id-ID');
     }
+
     function formatDate(ts) {
       const d = new Date(ts);
       return d.toLocaleDateString('id-ID', {day: '2-digit', month: 'short'}) + ', ' + d.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
     }
 
-    // --- NAVIGASI ---
     function showScreen(name, btn) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById('screen-' + name).classList.add('active');
@@ -349,16 +373,15 @@
       
       if (name === 'dashboard') renderDashboard();
       if (name === 'produk') renderProducts();
-      if (name === 'laporan') filterReport(1);
+      if (name === 'laporan') refreshReport();
     }
 
-    // Jam Berjalan di Header
     setInterval(() => {
       const d = new Date();
       document.getElementById('headerClock').innerText = d.toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit'});
     }, 1000);
 
-    // --- DASHBOARD & KALKULASI ARUS KAS ASLI ---
+    // --- DASHBOARD ---
     function renderDashboard() {
       let saldo = 0, penjualan = 0, pengeluaran = 0, labaKotor = 0, rugiBarang = 0;
 
@@ -371,13 +394,10 @@
         } else if (t.type === 'PEMASUKAN_LAIN') {
           saldo += val;
           labaKotor += val;
-        } else if (t.type === 'BELANJA_STOK') {
+        } else if (t.type === 'BELANJA_STOK' || t.type === 'OPERASIONAL') {
           saldo -= val;
           pengeluaran += val;
-        } else if (t.type === 'OPERASIONAL') {
-          saldo -= val;
-          pengeluaran += val;
-          labaKotor -= val;
+          if (t.type === 'OPERASIONAL') labaKotor -= val;
         } else if (t.type === 'BARANG_RUSAK') {
           rugiBarang += (t.cogs || val);
         }
@@ -392,13 +412,12 @@
       labaEl.innerText = toRupiah(labaBersih);
       labaEl.style.color = labaBersih >= 0 ? 'var(--primary)' : 'var(--danger)';
 
-      // Peringatan Stok
       const lowStock = appData.products.filter(p => Number(p.stock) <= Number(p.minAlert));
       const alertEl = document.getElementById('dashAlert');
       if (lowStock.length > 0) {
         alertEl.style.display = 'block';
-        alertEl.innerHTML = `<strong>⚠️ Perhatian: Stok Menipis (${lowStock.length} Item)</strong>` +
-          lowStock.map(p => `• ${p.name}: Tersisa ${p.stock} ${p.unit}`).join('<br>');
+        alertEl.innerHTML = `<strong>⚠️ Stok Menipis (${lowStock.length} Item)</strong>` +
+          lowStock.map(p => `• ${p.name}: Sisa ${p.stock} ${p.unit}`).join('<br>');
       } else {
         alertEl.style.display = 'none';
       }
@@ -408,7 +427,7 @@
     function renderProducts() {
       const container = document.getElementById('productListContainer');
       if (appData.products.length === 0) {
-        container.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px;">Belum ada menu atau bahan baku. Klik tombol + Tambah di atas.</div>';
+        container.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px;">Belum ada menu/bahan baku. Klik + Tambah.</div>';
         return;
       }
       container.innerHTML = appData.products.map(p => `
@@ -499,15 +518,28 @@
       btn.parentElement.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       
-      const wrap = document.getElementById('productSelectWrapper');
-      if (type === 'OPERASIONAL' || type === 'PEMASUKAN_LAIN') {
-        wrap.style.display = 'none';
+      const prodWrap = document.getElementById('productSelectWrapper');
+      const opsWrap = document.getElementById('opsCategoryWrapper');
+
+      if (type === 'OPERASIONAL') {
+        opsWrap.style.display = 'block';
+        prodWrap.style.display = 'none';
+        document.getElementById('transProduct').value = '';
+        document.getElementById('qtyWrapper').style.display = 'none';
+      } else if (type === 'PEMASUKAN_LAIN') {
+        opsWrap.style.display = 'none';
+        prodWrap.style.display = 'none';
         document.getElementById('transProduct').value = '';
         document.getElementById('qtyWrapper').style.display = 'none';
       } else {
-        wrap.style.display = 'block';
+        opsWrap.style.display = 'none';
+        prodWrap.style.display = 'block';
       }
       recalcAmount();
+    }
+
+    function setQuickOps(catName) {
+      document.getElementById('transNote').value = catName;
     }
 
     function setPaymentMethod(method, btn) {
@@ -520,12 +552,10 @@
       if (appData.staff.length === 0) appData.staff = ["Pemilik", "Kasir 1"];
       if (!currentStaff) currentStaff = appData.staff[0];
 
-      // Chips di layar Transaksi
       document.getElementById('staffChips').innerHTML = appData.staff.map(s => `
-        <button class="chip ${s === currentStaff ? 'active' : ''}" onclick="selectStaff('${s}', this)">${s}</button>
+        <button type="button" class="chip ${s === currentStaff ? 'active' : ''}" onclick="selectStaff('${s}', this)">${s}</button>
       `).join('');
 
-      // List di Pengaturan
       document.getElementById('staffListContainer').innerHTML = appData.staff.map((s, idx) => `
         <div class="item-row" style="padding: 8px 0;">
           <span style="font-size: 13px;">${s}</span>
@@ -600,13 +630,12 @@
         return alert("Nominal transaksi harus lebih dari 0!");
       }
 
-      // Validasi Stok Menipis/Minus
       if (pId && (currentTransType === 'PENJUALAN' || currentTransType === 'BARANG_RUSAK')) {
         const product = appData.products.find(item => item.id === Number(pId));
         if (product && product.stock < qty) {
           pendingTransaction = { pId, qty, amount };
           document.getElementById('stockWarningText').innerText = 
-            `Stok ${product.name} saat ini hanya tersisa ${product.stock} ${product.unit}, tetapi Anda memasukkan ${qty} ${product.unit}.\n\nTetap lanjutkan dan biarkan stok menjadi minus?`;
+            `Stok ${product.name} saat ini hanya ${product.stock} ${product.unit}, tetapi Anda memasukkan ${qty} ${product.unit}.\n\nTetap lanjutkan dan biarkan stok menjadi minus?`;
           document.getElementById('stockWarningModal').classList.add('active');
           return;
         }
@@ -655,7 +684,6 @@
       appData.transactions.unshift(record);
       saveData();
 
-      // Reset
       document.getElementById('transAmount').value = '';
       document.getElementById('transNote').value = '';
       document.getElementById('transProduct').value = '';
@@ -665,26 +693,51 @@
       showScreen('dashboard');
     }
 
-    // --- LAPORAN & GRAFIK ---
+    // --- LAPORAN KHUSUS PENGELUARAN & PEMASUKAN ---
     let reportDays = 1;
+    let historyViewType = 'ALL'; // ALL, EXPENSE, INCOME
 
-    function filterReport(days, btn) {
+    function filterReportDays(days, btn) {
       reportDays = days;
       if (btn) {
         btn.parentElement.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
       }
+      refreshReport();
+    }
 
-      const threshold = days === 0 ? 0 : Date.now() - (days * 24 * 60 * 60 * 1000);
-      const filtered = appData.transactions.filter(t => t.timestamp >= threshold);
+    function setHistoryView(viewType, btn) {
+      historyViewType = viewType;
+      if (btn) {
+        btn.parentElement.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      refreshReport();
+    }
+
+    function refreshReport() {
+      const threshold = reportDays === 0 ? 0 : Date.now() - (reportDays * 24 * 60 * 60 * 1000);
+      const filteredByDate = appData.transactions.filter(t => t.timestamp >= threshold);
 
       let masuk = 0, keluar = 0;
-      filtered.forEach(t => {
+      let expBelanja = 0, expOps = 0, expRugi = 0;
+
+      filteredByDate.forEach(t => {
         const val = Number(t.amount);
-        if (t.type === 'PENJUALAN' || t.type === 'PEMASUKAN_LAIN') masuk += val;
-        else if (t.type === 'BELANJA_STOK' || t.type === 'OPERASIONAL') keluar += val;
+        if (t.type === 'PENJUALAN' || t.type === 'PEMASUKAN_LAIN') {
+          masuk += val;
+        } else if (t.type === 'BELANJA_STOK') {
+          keluar += val;
+          expBelanja += val;
+        } else if (t.type === 'OPERASIONAL') {
+          keluar += val;
+          expOps += val;
+        } else if (t.type === 'BARANG_RUSAK') {
+          expRugi += (t.cogs || val);
+        }
       });
 
+      // Update Ringkasan Umum
       document.getElementById('repMasuk').innerText = toRupiah(masuk);
       document.getElementById('repKeluar').innerText = toRupiah(keluar);
       const selisih = masuk - keluar;
@@ -692,26 +745,44 @@
       selisihEl.innerText = toRupiah(selisih);
       selisihEl.style.color = selisih >= 0 ? 'var(--primary)' : 'var(--danger)';
 
-      // Grafik
-      const maxVal = Math.max(masuk, keluar, 1);
-      document.getElementById('chartBarInflow').style.height = Math.max(8, (masuk / maxVal) * 80) + 'px';
-      document.getElementById('chartBarOutflow').style.height = Math.max(8, (keluar / maxVal) * 80) + 'px';
+      // Update Rincian Pengeluaran
+      document.getElementById('expBelanjaStok').innerText = toRupiah(expBelanja);
+      document.getElementById('expOperasional').innerText = toRupiah(expOps);
+      document.getElementById('expBarangRusak').innerText = toRupiah(expRugi);
 
-      // Daftar Riwayat
+      const totalSemuaPengeluaran = expBelanja + expOps + expRugi;
+      if (totalSemuaPengeluaran > 0) {
+        document.getElementById('barStok').style.width = ((expBelanja / totalSemuaPengeluaran) * 100) + '%';
+        document.getElementById('barOps').style.width = ((expOps / totalSemuaPengeluaran) * 100) + '%';
+        document.getElementById('barRugi').style.width = ((expRugi / totalSemuaPengeluaran) * 100) + '%';
+      } else {
+        document.getElementById('barStok').style.width = '0%';
+        document.getElementById('barOps').style.width = '0%';
+        document.getElementById('barRugi').style.width = '0%';
+      }
+
+      // Filter Tampilan Riwayat (Semua / Pengeluaran / Pemasukan)
+      let displayList = filteredByDate;
+      if (historyViewType === 'EXPENSE') {
+        displayList = filteredByDate.filter(t => t.type === 'BELANJA_STOK' || t.type === 'OPERASIONAL' || t.type === 'BARANG_RUSAK');
+      } else if (historyViewType === 'INCOME') {
+        displayList = filteredByDate.filter(t => t.type === 'PENJUALAN' || t.type === 'PEMASUKAN_LAIN');
+      }
+
       const container = document.getElementById('transactionListContainer');
-      if (filtered.length === 0) {
-        container.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 13px;">Tidak ada transaksi di periode ini.</div>';
+      if (displayList.length === 0) {
+        container.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 13px;">Tidak ada transaksi di kategori ini.</div>';
         return;
       }
 
-      container.innerHTML = filtered.map(t => {
+      container.innerHTML = displayList.map(t => {
         const isPlus = t.type === 'PENJUALAN' || t.type === 'PEMASUKAN_LAIN';
         return `
           <div class="item-row">
             <div>
               <div style="font-weight: 600; font-size: 13px;">${t.type.replace('_', ' ')}</div>
-              <div style="font-size: 11px; color: var(--text-muted);">${formatDate(t.timestamp)} • Kasir: ${t.staffName}</div>
-              ${t.notes ? `<div style="font-size: 11px; color: #555;">Catatan: ${t.notes}</div>` : ''}
+              <div style="font-size: 11px; color: var(--text-muted);">${formatDate(t.timestamp)} • Oleh: ${t.staffName}</div>
+              ${t.notes ? `<div style="font-size: 11px; color: #555;">Keterangan: ${t.notes}</div>` : ''}
             </div>
             <div style="text-align: right;">
               <div style="font-weight: 700; font-size: 14px; color: ${isPlus ? 'var(--success)' : 'var(--danger)'};">
@@ -727,7 +798,7 @@
     // --- EKSPOR CSV ---
     function exportCSV() {
       if (appData.transactions.length === 0) return alert("Belum ada transaksi untuk diekspor!");
-      let csv = "ID,Tanggal,Jenis,Nominal,Pegawai,Metode,Catatan\n";
+      let csv = "ID,Tanggal,Jenis_Transaksi,Nominal,Kasir,Metode_Bayar,Catatan\n";
       appData.transactions.forEach(t => {
         csv += `"${t.id}","${formatDate(t.timestamp)}","${t.type}","${t.amount}","${t.staffName}","${t.paymentMethod}","${(t.notes || '').replace(/"/g, '""')}"\n`;
       });
@@ -740,7 +811,7 @@
       a.click();
     }
 
-    // --- CADANGKAN & PULIHKAN (BACKUP & RESTORE JSON) ---
+    // --- CADANGKAN & PULIHKAN ---
     function backupJSON() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
       const a = document.createElement('a');
@@ -762,7 +833,7 @@
             alert("Pemulihan data cadangan berhasil!");
             showScreen('dashboard');
           } else {
-            alert("File cadangan tidak valid!");
+            alert("Format file cadangan tidak valid!");
           }
         } catch(err) {
           alert("Gagal membaca file: " + err.message);
@@ -771,7 +842,6 @@
       reader.readAsText(file);
     }
 
-    // Jalankan saat pertama dimuat
     loadData();
   </script>
 </body>
