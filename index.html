@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>KasUsaha - Kasir & Keuangan UMKM</title>
+  
+  <meta name="theme-color" content="#1976D2">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    :root {
+      --primary: #1976D2;
+      --success: #2E7D32;
+      --danger: #C62828;
+      --warning: #EF6C00;
+      --bg: #F5F7FA;
+      --surface: #FFFFFF;
+      --text: #212121;
+      --text-muted: #757575;
+      --border: #E0E0E0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding-bottom: 75px; user-select: none; }
+    
+    header { background: var(--primary); color: white; padding: 16px; position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    header h1 { font-size: 18px; font-weight: 600; }
+    
+    .container { padding: 16px; max-width: 600px; margin: auto; }
+    .screen { display: none; }
+    .screen.active { display: block; }
+    
+    .card { background: var(--surface); border-radius: 14px; padding: 16px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid var(--border); }
+    .card-balance { background: linear-gradient(135deg, #1976D2, #1565C0); color: white; border: none; }
+    .card-balance h2 { font-size: 26px; margin-top: 4px; }
+    
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .metric-box { background: var(--surface); padding: 12px; border-radius: 10px; border: 1px solid var(--border); }
+    .metric-box .label { font-size: 12px; color: var(--text-muted); }
+    .metric-box .val { font-size: 15px; font-weight: 700; margin-top: 4px; }
+    
+    .alert-box { background: #FFF3E0; border-left: 4px solid var(--warning); padding: 12px; border-radius: 8px; margin-bottom: 14px; font-size: 13px; }
+    .alert-box strong { color: var(--warning); display: block; margin-bottom: 4px; }
+    
+    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #424242; }
+    input, select, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 12px; font-size: 14px; outline: none; }
+    input:focus, select:focus { border-color: var(--primary); }
+    
+    .btn { width: 100%; padding: 12px; border-radius: 8px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; text-align: center; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    
+    .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; }
+    .chip { padding: 6px 14px; border-radius: 20px; font-size: 12px; background: #EEE; border: none; cursor: pointer; white-space: nowrap; }
+    .chip.active { background: var(--primary); color: white; }
+    .chip-danger.active { background: var(--danger); color: white; }
+    .chip-success.active { background: var(--success); color: white; }
+    
+    .item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); }
+    .item-row:last-child { border-bottom: none; }
+    
+    .bar-container { background: #EEEEEE; height: 10px; border-radius: 5px; overflow: hidden; display: flex; margin: 8px 0 12px 0; }
+    .bar-part { height: 100%; }
+
+    nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); display: flex; border-top: 1px solid var(--border); z-index: 100; }
+    nav button { flex: 1; padding: 10px 0; background: none; border: none; display: flex; flex-direction: column; align-items: center; font-size: 11px; color: var(--text-muted); cursor: pointer; }
+    nav button.active { color: var(--primary); font-weight: 700; }
+    nav button svg { width: 22px; height: 22px; margin-bottom: 3px; fill: currentColor; }
+
+    /* Modal Pop-up */
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; justify-content: center; align-items: center; padding: 16px; }
+    .modal.active { display: flex; }
+    .modal-content { background: white; width: 100%; max-width: 420px; border-radius: 12px; padding: 18px; max-height: 90vh; overflow-y: auto; }
+
+    /* TAMPILAN NOTA STRUK THERMAL (KERTAS KASIR) */
+    .receipt-box { background: #FAFAFA; border: 1px dashed #999; border-radius: 6px; padding: 16px; font-family: 'Courier New', Courier, monospace; color: #000; font-size: 12px; line-height: 1.4; margin-bottom: 16px; }
+    .receipt-header { text-align: center; margin-bottom: 10px; border-bottom: 1px dashed #777; padding-bottom: 8px; }
+    .receipt-header h3 { font-size: 16px; font-weight: bold; margin-bottom: 2px; }
+    .receipt-line { border-bottom: 1px dashed #777; margin: 8px 0; }
+    .receipt-flex { display: flex; justify-content: space-between; }
+    .receipt-footer { text-align: center; margin-top: 10px; border-top: 1px dashed #777; padding-top: 8px; font-size: 11px; }
+
+    /* KHUSUS CETAK PRINTER */
+    @media print {
+      body * { visibility: hidden; }
+      #printableReceipt, #printableReceipt * { visibility: visible; }
+      #printableReceipt { position: absolute; left: 0; top: 0; width: 100%; max-width: 58mm; padding: 0; margin: 0; border: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1 id="headerTitle">KasUsaha</h1>
+    <span id="headerClock" style="font-size: 12px; opacity: 0.9;"></span>
+  </header>
+
+  <div class="container">
+    
+    <!-- 1. DASHBOARD -->
+    <section id="screen-dashboard" class="screen active">
+      <div class="card card-balance">
+        <div style="font-size: 13px; opacity: 0.85;">Saldo Kas Saat Ini</div>
+        <h2 id="dashSaldo">Rp 0</h2>
+      </div>
+
+      <div class="grid-2">
+        <div class="metric-box">
+          <div class="label">Total Pemasukan</div>
+          <div class="val" id="dashPenjualan" style="color: var(--success);">Rp 0</div>
+        </div>
+        <div class="metric-box">
+          <div class="label">Total Pengeluaran</div>
+          <div class="val" id="dashPengeluaran" style="color: var(--danger);">Rp 0</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 14px;">
+        <div style="font-size: 12px; color: var(--text-muted);">Estimasi Keuntungan Bersih</div>
+        <div id="dashLaba" style="font-size: 20px; font-weight: 800; margin-top: 4px;">Rp 0</div>
+      </div>
+
+      <div id="dashAlert" class="alert-box" style="display: none;"></div>
+
+      <button class="btn btn-primary" onclick="showScreen('transaksi')">+ Catat Transaksi Baru</button>
+    </section>
+
+    <!-- 2. PRODUK & BAHAN -->
+    <section id="screen-produk" class="screen">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3 style="font-size: 16px;">Menu & Bahan Baku</h3>
+        <button class="btn btn-primary" style="width: auto; padding: 8px 14px; font-size: 13px;" onclick="openProductModal()">+ Tambah</button>
+      </div>
+      <div class="card" id="productListContainer" style="padding: 0;"></div>
+    </section>
+
+    <!-- 3. TRANSAKSI -->
+    <section id="screen-transaksi" class="screen">
+      <div class="card">
+        <h3 style="margin-bottom: 12px; font-size: 16px;">Catat Transaksi</h3>
+        
+        <label>Jenis Transaksi:</label>
+        <div class="chips">
+          <button class="chip active chip-success" onclick="setTransType('PENJUALAN', this)">+ Penjualan</button>
+          <button class="chip chip-danger" onclick="setTransType('BELANJA_STOK', this)">- Belanja Stok</button>
+          <button class="chip chip-danger" onclick="setTransType('OPERASIONAL', this)">- Operasional</button>
+          <button class="chip chip-success" onclick="setTransType('PEMASUKAN_LAIN', this)">+ Pemasukan Lain</button>
+          <button class="chip chip-danger" onclick="setTransType('BARANG_RUSAK', this)">- Barang Rusak</button>
+        </div>
+
+        <label>Kasir / Pegawai yang Mencatat:</label>
+        <div class="chips" id="staffChips"></div>
+
+        <div id="opsCategoryWrapper" style="display: none;">
+          <label>Kategori Pengeluaran Cepat:</label>
+          <div class="chips">
+            <button type="button" class="chip" onclick="setQuickOps('Bahan/Bumbu Dapur')">Bumbu/Bahan</button>
+            <button type="button" class="chip" onclick="setQuickOps('Gas & Air Galon')">Gas & Air</button>
+            <button type="button" class="chip" onclick="setQuickOps('Kemasan/Plastik/Cup')">Kemasan</button>
+            <button type="button" class="chip" onclick="setQuickOps('Listrik & Internet')">Listrik</button>
+            <button type="button" class="chip" onclick="setQuickOps('Sewa/Kebersihan')">Sewa/Kebersihan</button>
+          </div>
+        </div>
+
+        <div id="productSelectWrapper">
+          <label>Menu / Item Terkait:</label>
+          <select id="transProduct" onchange="onProductSelectChange()">
+            <option value="">-- Tanpa Item Terdaftar --</option>
+          </select>
+          <div id="qtyWrapper" style="display: none;">
+            <label id="qtyLabel">Jumlah Porsi / Satuan:</label>
+            <input type="number" id="transQty" value="1" min="0.1" step="any" oninput="recalcAmount()">
+          </div>
+        </div>
+
+        <label>Nominal Rupiah (Rp):</label>
+        <input type="number" id="transAmount" placeholder="Contoh: 15000">
+
+        <label>Metode Pembayaran:</label>
+        <div class="chips" id="paymentChips">
+          <button class="chip active" onclick="setPaymentMethod('Tunai', this)">Tunai</button>
+          <button class="chip" onclick="setPaymentMethod('QRIS', this)">QRIS</button>
+          <button class="chip" onclick="setPaymentMethod('Transfer', this)">Transfer</button>
+        </div>
+
+        <label>Catatan / Keterangan Nota:</label>
+        <input type="text" id="transNote" placeholder="Contoh: Meja 4 / Bungkus / Sambal dipisah">
+
+        <button class="btn btn-primary" onclick="submitTransaction()">Simpan & Buat Nota</button>
+      </div>
+    </section>
+
+    <!-- 4. LAPORAN & PENGELUARAN -->
+    <section id="screen-laporan" class="screen">
+      <div class="chips">
+        <button class="chip active" onclick="filterReportDays(1, this)">Hari Ini</button>
+        <button class="chip" onclick="filterReportDays(7, this)">7 Hari</button>
+        <button class="chip" onclick="filterReportDays(30, this)">30 Hari</button>
+        <button class="chip" onclick="filterReportDays(0, this)">Semua</button>
+      </div>
+
+      <div class="card">
+        <h4 style="font-size: 14px; margin-bottom: 8px;">Ringkasan Keuangan</h4>
+        <div style="font-size: 13px; margin-bottom: 4px;">Total Pemasukan: <b id="repMasuk" style="color: var(--success);">Rp 0</b></div>
+        <div style="font-size: 13px; margin-bottom: 6px;">Total Pengeluaran: <b id="repKeluar" style="color: var(--danger);">Rp 0</b></div>
+        <hr style="border: none; border-top: 1px solid var(--border); margin: 6px 0;">
+        <div style="font-size: 14px;">Selisih Bersih: <b id="repSelisih">Rp 0</b></div>
+      </div>
+
+      <div class="card" style="border-left: 4px solid var(--danger);">
+        <h4 style="font-size: 14px; color: var(--danger); margin-bottom: 8px;">📊 Rincian Pos Pengeluaran</h4>
+        <div class="bar-container">
+          <div id="barStok" class="bar-part" style="background: #E53935; width: 0%;"></div>
+          <div id="barOps" class="bar-part" style="background: #FB8C00; width: 0%;"></div>
+          <div id="barRugi" class="bar-part" style="background: #757575; width: 0%;"></div>
+        </div>
+        <div style="font-size: 12px; display: flex; justify-content: space-between; margin-bottom: 4px;">
+          <span>🔴 Belanja Stok Bahan:</span>
+          <b id="expBelanjaStok">Rp 0</b>
+        </div>
+        <div style="font-size: 12px; display: flex; justify-content: space-between; margin-bottom: 4px;">
+          <span>🟠 Biaya Operasional:</span>
+          <b id="expOperasional">Rp 0</b>
+        </div>
+        <div style="font-size: 12px; display: flex; justify-content: space-between;">
+          <span>⚪ Kerugian Barang Rusak:</span>
+          <b id="expBarangRusak">Rp 0</b>
+        </div>
+      </div>
+
+      <button class="btn btn-outline" style="margin-bottom: 14px;" onclick="exportCSV()">📥 Unduh Laporan Lengkap (.CSV)</button>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <h4 style="font-size: 14px;">Daftar Transaksi</h4>
+        <div class="chips" style="margin-bottom: 0; padding-bottom: 0;">
+          <button class="chip active" onclick="setHistoryView('ALL', this)">Semua</button>
+          <button class="chip" onclick="setHistoryView('EXPENSE', this)" style="color: var(--danger);">Pengeluaran</button>
+          <button class="chip" onclick="setHistoryView('INCOME', this)" style="color: var(--success);">Pemasukan</button>
+        </div>
+      </div>
+
+      <div class="card" id="transactionListContainer" style="padding: 0;"></div>
+    </section>
+
+    <!-- 5. PENGATURAN -->
+    <section id="screen-pengaturan" class="screen">
+      <!-- Identitas Usaha untuk Nota Struk -->
+      <div class="card">
+        <h4 style="font-size: 15px; margin-bottom: 8px;">Profil Usaha (Kop Nota Struk)</h4>
+        <label>Nama Usaha / Warung:</label>
+        <input type="text" id="cfgStoreName" placeholder="Contoh: Kopi Janji Kenyang">
+        <label>Alamat / Lokasi:</label>
+        <input type="text" id="cfgStoreAddress" placeholder="Contoh: Jl. Merdeka No. 12">
+        <label>No. HP / WhatsApp:</label>
+        <input type="text" id="cfgStorePhone" placeholder="Contoh: 0812-3456-7890">
+        <button class="btn btn-primary" onclick="saveStoreConfig()">Simpan Profil Nota</button>
+      </div>
+
+      <div class="card">
+        <h4 style="font-size: 15px; margin-bottom: 8px;">Pegawai / Kasir yang Bertugas</h4>
+        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+          <input type="text" id="newStaffInput" placeholder="Nama Pegawai Baru" style="margin-bottom: 0;">
+          <button class="btn btn-primary" style="width: auto; padding: 0 16px;" onclick="addStaff()">Tambah</button>
+        </div>
+        <div id="staffListContainer"></div>
+      </div>
+
+      <div class="card">
+        <h4 style="font-size: 15px; margin-bottom: 6px;">Pencadangan Data</h4>
+        <button class="btn btn-primary" style="margin-bottom: 10px;" onclick="backupJSON()">💾 Cadangkan Data (Backup JSON)</button>
+        <button class="btn btn-outline" onclick="document.getElementById('restoreFileInput').click()">📂 Pulihkan Data (Restore JSON)</button>
+        <input type="file" id="restoreFileInput" style="display: none;" accept=".json" onchange="restoreJSON(event)">
+      </div>
+    </section>
+
+  </div>
+
+  <!-- MODAL CETAK NOTA / STRUK PEMBAYARAN -->
+  <div class="modal" id="receiptModal">
+    <div class="modal-content">
+      <div id="printableReceipt" class="receipt-box">
+        <div class="receipt-header">
+          <h3 id="rcptStoreName">KasUsaha Kuliner</h3>
+          <div id="rcptStoreAddress">Jl. Raya Kuliner Indonesia</div>
+          <div id="rcptStorePhone">Telp: 0812-0000-0000</div>
+        </div>
+        
+        <div class="receipt-flex">
+          <span>No: <b id="rcptId">#000</b></span>
+          <span id="rcptDate">20/10/2026</span>
+        </div>
+        <div class="receipt-flex">
+          <span>Kasir: <span id="rcptStaff">Kasir</span></span>
+          <span id="rcptPayMethod">Tunai</span>
+        </div>
+        
+        <div class="receipt-line"></div>
+        <div id="rcptItems"></div>
+        <div class="receipt-line"></div>
+        
+        <div class="receipt-flex" style="font-size: 14px; font-weight: bold;">
+          <span>TOTAL:</span>
+          <span id="rcptTotal">Rp 0</span>
+        </div>
+        
+        <div id="rcptNotesWrapper" style="margin-top: 6px; font-size: 11px; font-style: italic; color: #444;">
+          Catatan: <span id="rcptNotes">-</span>
+        </div>
+        
+        <div class="receipt-footer">
+          <div>Terima kasih atas kunjungannya!</div>
+          <div style="font-size: 9px; margin-top: 4px; color: #888;">Struk resmi diterbitkan KasUsaha</div>
+        </div>
+      </div>
+
+      <!-- Tombol Aksi Nota -->
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button class="btn btn-primary" onclick="printReceipt()">🖨️ Cetak ke Printer / PDF</button>
+        <button class="btn btn-success" onclick="shareReceiptWhatsApp()">💬 Kirim Nota ke WhatsApp Pelanggan</button>
+        <button class="btn btn-outline" onclick="closeReceiptModal()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Input Produk -->
+  <div class="modal" id="productModal">
+    <div class="modal-content">
+      <h3 id="productModalTitle" style="margin-bottom: 14px; font-size: 16px;">Tambah Menu / Bahan</h3>
+      <input type="hidden" id="prodId">
+      <label>Nama Menu / Bahan:</label>
+      <input type="text" id="prodName" placeholder="Contoh: Es Kopi Susu">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div>
+          <label>Stok Awal:</label>
+          <input type="number" id="prodStock" placeholder="0">
+        </div>
+        <div>
+          <label>Satuan:</label>
+          <input type="text" id="prodUnit" placeholder="Cup/Porsi/Pcs">
+        </div>
+      </div>
+      <label>Harga Modal (HPP Rp):</label>
+      <input type="number" id="prodCost" placeholder="Contoh: 6000">
+      <label>Harga Jual (Rp):</label>
+      <input type="number" id="prodSell" placeholder="Contoh: 15000">
+      <label>Batas Peringatan Stok:</label>
+      <input type="number" id="prodMinAlert" value="5">
+      <div style="display: flex; gap: 8px; margin-top: 10px;">
+        <button class="btn btn-outline" onclick="closeProductModal()">Batal</button>
+        <button class="btn btn-primary" onclick="saveProduct()">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Peringatan Stok Minus -->
+  <div class="modal" id="stockWarningModal">
+    <div class="modal-content">
+      <h3 style="color: var(--danger); margin-bottom: 8px;">Peringatan: Stok Tidak Cukup!</h3>
+      <p id="stockWarningText" style="font-size: 13px; line-height: 1.5; margin-bottom: 16px;"></p>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-outline" onclick="closeStockWarning()">Batal</button>
+        <button class="btn btn-danger" onclick="proceedNegativeTransaction()">Tetap Lanjutkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigasi Bawah -->
+  <nav>
+    <button class="active" onclick="showScreen('dashboard', this)">
+      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+      Dashboard
+    </button>
+    <button onclick="showScreen('produk', this)">
+      <svg viewBox="0 0 24 24"><path d="M20 2H4c-1 0-2 .9-2 2v3.01c0 .72.43 1.34 1 1.69V20c0 1.1 1.1 2 2 2h14c.9 0 2-.9 2-2V8.7c.57-.35 1-.97 1-1.69V4c0-1.1-1-2-2-2zm-5 12H9v-2h6v2zm5-7H4V4h16v3z"/></svg>
+      Produk
+    </button>
+    <button onclick="showScreen('transaksi', this)">
+      <svg viewBox="0 0 24 24"><path d="M19 14V6c0-1.1-.9-2-2-2H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zm-9-1c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm13-6v11c0 1.1-.9 2-2 2H4v-2h17V7h2z"/></svg>
+      Transaksi
+    </button>
+    <button onclick="showScreen('laporan', this)">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+      Laporan
+    </button>
+    <button onclick="showScreen('pengaturan', this)">
+      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+      Pengaturan
+    </button>
+  </nav>
+
+  <script>
+    const DB_KEY = 'KASUSAHA_DATABASE';
+    let appData = {
+      products: [],
+      transactions: [],
+      staff: ["Pemilik", "Kasir 1"],
+      storeConfig: {
+        name: "KasUsaha Kuliner",
+        address: "Jl. Kuliner No. 8",
+        phone: "0812-3456-7890"
+      }
+    };
+
+    function loadData() {
+      const saved = localStorage.getItem(DB_KEY);
+      if (saved) {
+        try { 
+          const parsed = JSON.parse(saved);
+          appData = Object.assign(appData, parsed);
+        } catch(e) {}
+      }
+      // Load config to input
+      document.getElementById('cfgStoreName').value = appData.storeConfig.name;
+      document.getElementById('cfgStoreAddress').value = appData.storeConfig.address;
+      document.getElementById('cfgStorePhone').value = appData.storeConfig.phone;
+
+      renderStaff();
+      renderProductDropdown();
+      renderDashboard();
+    }
+
+    function saveData() {
+      localStorage.setItem(DB_KEY, JSON.stringify(appData));
+      renderDashboard();
+      renderProducts();
+      renderProductDropdown();
+      renderStaff();
+    }
+
+    function toRupiah(num) {
+      return "Rp " + Math.round(num || 0).toLocaleString('id-ID');
+    }
+
+    function formatDate(ts) {
+      const d = new Date(ts);
+      return d.toLocaleDateString('id-ID', {day: '2-digit', month: 'short'}) + ', ' + d.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+    }
+
+    function saveStoreConfig() {
+      appData.storeConfig.name = document.getElementById('cfgStoreName').value.trim() || "KasUsaha Kuliner";
+      appData.storeConfig.address = document.getElementById('cfgStoreAddress').value.trim() || "";
+      appData.storeConfig.phone = document.getElementById('cfgStorePhone').value.trim() || "";
+      saveData();
+      alert("Profil nota berhasil disimpan!");
+    }
+
+    function showScreen(name, btn) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-' + name).classList.add('active');
+      document.getElementById('headerTitle').innerText = name.toUpperCase();
+      
+      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      
+      if (name === 'dashboard') renderDashboard();
+      if (name === 'produk') renderProducts();
+      if (name === 'laporan') refreshReport();
+    }
+
+    setInterval(() => {
+      const d = new Date();
+      document.getElementById('headerClock').innerText = d.toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit'});
+    }, 1000);
+
+    // --- DASHBOARD ---
+    function renderDashboard() {
+      let saldo = 0, penjualan = 0, pengeluaran = 0, labaKotor = 0, rugiBarang = 0;
+
+      appData.transactions.forEach(t => {
+        const val = Number(t.amount);
+        if (t.type === 'PENJUALAN') {
+          saldo += val;
+          penjualan += val;
+          labaKotor += (val - (t.cogs || 0));
+        } else if (t.type === 'PEMASUKAN_LAIN') {
+          saldo += val;
+          labaKotor += val;
+        } else if (t.type === 'BELANJA_STOK' || t.type === 'OPERASIONAL') {
+          saldo -= val;
+          pengeluaran += val;
+          if (t.type === 'OPERASIONAL') labaKotor -= val;
+        } else if (t.type === 'BARANG_RUSAK') {
+          rugiBarang += (t.cogs || val);
+        }
+      });
+
+      const labaBersih = labaKotor - rugiBarang;
+
+      document.getElementById('dashSaldo').innerText = toRupiah(saldo);
+      document.getElementById('dashPenjualan').innerText = toRupiah(penjualan);
+      document.getElementById('dashPengeluaran').innerText = toRupiah(pengeluaran);
+      const labaEl = document.getElementById('dashLaba');
+      labaEl.innerText = toRupiah(labaBersih);
+      labaEl.style.color = labaBersih >= 0 ? 'var(--primary)' : 'var(--danger)';
+
+      const lowStock = appData.products.filter(p => Number(p.stock) <= Number(p.minAlert));
+      const alertEl = document.getElementById('dashAlert');
+      if (lowStock.length > 0) {
+        alertEl.style.display = 'block';
+        alertEl.innerHTML = `<strong>⚠️ Stok Menipis (${lowStock.length} Item)</strong>` +
+          lowStock.map(p => `• ${p.name}: Sisa ${p.stock} ${p.unit}`).join('<br>');
+      } else {
+        alertEl.style.display = 'none';
+      }
+    }
+
+    // --- PRODUK ---
+    function renderProducts() {
+      const container = document.getElementById('productListContainer');
+      if (appData.products.length === 0) {
+        container.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px;">Belum ada menu/bahan baku. Klik + Tambah.</div>';
+        return;
+      }
+      container.innerHTML = appData.products.map(p => `
+        <div class="item-row">
+          <div>
+            <div style="font-weight: 600; font-size: 14px;">${p.name}</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Modal: ${toRupiah(p.costPrice)} | Jual: ${toRupiah(p.sellPrice)}</div>
+            <div style="font-size: 12px; margin-top: 2px; color: ${Number(p.stock) <= Number(p.minAlert) ? 'var(--danger)' : 'var(--text)'}; font-weight: 500;">
+              Stok: ${p.stock} ${p.unit}
+            </div>
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <button class="chip" onclick="editProduct(${p.id})">Ubah</button>
+            <button class="chip" style="color: var(--danger);" onclick="deleteProduct(${p.id})">Hapus</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openProductModal() {
+      document.getElementById('prodId').value = '';
+      document.getElementById('prodName').value = '';
+      document.getElementById('prodStock').value = '';
+      document.getElementById('prodUnit').value = 'Porsi';
+      document.getElementById('prodCost').value = '';
+      document.getElementById('prodSell').value = '';
+      document.getElementById('prodMinAlert').value = '5';
+      document.getElementById('productModalTitle').innerText = 'Tambah Menu / Bahan';
+      document.getElementById('productModal').classList.add('active');
+    }
+
+    function closeProductModal() {
+      document.getElementById('productModal').classList.remove('active');
+    }
+
+    function saveProduct() {
+      const name = document.getElementById('prodName').value.trim();
+      if (!name) return alert("Nama item wajib diisi!");
+      const id = document.getElementById('prodId').value;
+      const product = {
+        id: id ? Number(id) : Date.now(),
+        name: name,
+        stock: Number(document.getElementById('prodStock').value) || 0,
+        unit: document.getElementById('prodUnit').value || 'Porsi',
+        costPrice: Number(document.getElementById('prodCost').value) || 0,
+        sellPrice: Number(document.getElementById('prodSell').value) || 0,
+        minAlert: Number(document.getElementById('prodMinAlert').value) || 5
+      };
+
+      if (id) {
+        const idx = appData.products.findIndex(p => p.id === Number(id));
+        if (idx !== -1) appData.products[idx] = product;
+      } else {
+        appData.products.push(product);
+      }
+      saveData();
+      closeProductModal();
+    }
+
+    function editProduct(id) {
+      const p = appData.products.find(item => item.id === id);
+      if (!p) return;
+      document.getElementById('prodId').value = p.id;
+      document.getElementById('prodName').value = p.name;
+      document.getElementById('prodStock').value = p.stock;
+      document.getElementById('prodUnit').value = p.unit;
+      document.getElementById('prodCost').value = p.costPrice;
+      document.getElementById('prodSell').value = p.sellPrice;
+      document.getElementById('prodMinAlert').value = p.minAlert;
+      document.getElementById('productModalTitle').innerText = 'Ubah Menu / Bahan';
+      document.getElementById('productModal').classList.add('active');
+    }
+
+    function deleteProduct(id) {
+      if (confirm("Hapus item ini dari daftar?")) {
+        appData.products = appData.products.filter(p => p.id !== id);
+        saveData();
+      }
+    }
+
+    // --- TRANSAKSI & PEMBUATAN NOTA ---
+    let currentTransType = 'PENJUALAN';
+    let currentStaff = '';
+    let currentPayment = 'Tunai';
+
+    function setTransType(type, btn) {
+      currentTransType = type;
+      btn.parentElement.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      const prodWrap = document.getElementById('productSelectWrapper');
+      const opsWrap = document.getElementById('opsCategoryWrapper');
+
+      if (type === 'OPERASIONAL') {
+        opsWrap.style.display = 'block';
+        prodWrap.style.display = 'none';
+        document.getElementById('transProduct').value = '';
+        document.getElementById('qtyWrapper').style.display = 'none';
+      } else if (type === 'PEMASUKAN_LAIN') {
+        opsWrap.style.display = 'none';
+        prodWrap.style.display = 'none';
+        document.getElementById('transProduct').value = '';
+        document.getElementById('qtyWrapper').style.display = 'none';
+      } else {
+        opsWrap.style.display = 'none';
+        prodWrap.style.display = 'block';
+      }
+      recalcAmount();
+    }
+
+    function setQuickOps(catName) {
+      document.getElementById('transNote').value = catName;
+    }
+
+    function setPaymentMethod(method, btn) {
+      currentPayment = method;
+      btn.parentElement.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function renderStaff() {
+      if (appData.staff.length === 0) appData.staff = ["Pemilik", "Kasir 1"];
+      if (!currentStaff) currentStaff = appData.staff[0];
+
+      document.getElementById('staffChips').innerHTML = appData.staff.map(s => `
+        <button type="button" class="chip ${s === currentStaff ? 'active' : ''}" onclick="selectStaff('${s}', this)">${s}</button>
+      `).join('');
+
+      document.getElementById('staffListContainer').innerHTML = appData.staff.map((s, idx) => `
+        <div class="item-row" style="padding: 8px 0;">
+          <span style="font-size: 13px;">${s}</span>
+          ${appData.staff.length > 1 ? `<button class="chip" style="color: var(--danger);" onclick="deleteStaff(${idx})">Hapus</button>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function selectStaff(name, btn) {
+      currentStaff = name;
+      btn.parentElement.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function addStaff() {
+      const input = document.getElementById('newStaffInput');
+      const val = input.value.trim();
+      if (val && !appData.staff.includes(val)) {
+        appData.staff.push(val);
+        input.value = '';
+        saveData();
+      }
+    }
+
+    function deleteStaff(idx) {
+      appData.staff.splice(idx, 1);
+      currentStaff = appData.staff[0] || '';
+      saveData();
+    }
+
+    function renderProductDropdown() {
+      const select = document.getElementById('transProduct');
+      select.innerHTML = '<option value="">-- Tanpa Item Terdaftar --</option>' +
+        appData.products.map(p => `<option value="${p.id}">${p.name} (Stok: ${p.stock} ${p.unit})</option>`).join('');
+    }
+
+    function onProductSelectChange() {
+      const pId = document.getElementById('transProduct').value;
+      const qtyWrapper = document.getElementById('qtyWrapper');
+      if (pId) {
+        qtyWrapper.style.display = 'block';
+        const p = appData.products.find(item => item.id === Number(pId));
+        if (p) document.getElementById('qtyLabel').innerText = `Jumlah (${p.unit}):`;
+      } else {
+        qtyWrapper.style.display = 'none';
+      }
+      recalcAmount();
+    }
+
+    function recalcAmount() {
+      const pId = document.getElementById('transProduct').value;
+      if (!pId) return;
+      const p = appData.products.find(item => item.id === Number(pId));
+      const qty = Number(document.getElementById('transQty').value) || 0;
+      if (p && qty > 0) {
+        if (currentTransType === 'PENJUALAN') {
+          document.getElementById('transAmount').value = p.sellPrice * qty;
+        } else if (currentTransType === 'BELANJA_STOK' || currentTransType === 'BARANG_RUSAK') {
+          document.getElementById('transAmount').value = p.costPrice * qty;
+        }
+      }
+    }
+
+    let pendingTransaction = null;
+
+    function submitTransaction() {
+      const amount = Number(document.getElementById('transAmount').value) || 0;
+      const pId = document.getElementById('transProduct').value;
+      const qty = Number(document.getElementById('transQty').value) || 0;
+
+      if (amount <= 0 && currentTransType !== 'BARANG_RUSAK') {
+        return alert("Nominal transaksi harus lebih dari 0!");
+      }
+
+      if (pId && (currentTransType === 'PENJUALAN' || currentTransType === 'BARANG_RUSAK')) {
+        const product = appData.products.find(item => item.id === Number(pId));
+        if (product && product.stock < qty) {
+          pendingTransaction = { pId, qty, amount };
+          document.getElementById('stockWarningText').innerText = 
+            `Stok ${product.name} saat ini hanya ${product.stock} ${product.unit}, tetapi Anda memasukkan ${qty} ${product.unit}.\n\nTetap lanjutkan dan biarkan stok menjadi minus?`;
+          document.getElementById('stockWarningModal').classList.add('active');
+          return;
+        }
+      }
+
+      executeTransaction(pId ? Number(pId) : null, qty, amount);
+    }
+
+    function closeStockWarning() {
+      document.getElementById('stockWarningModal').classList.remove('active');
+      pendingTransaction = null;
+    }
+
+    function proceedNegativeTransaction() {
+      if (pendingTransaction) {
+        executeTransaction(Number(pendingTransaction.pId), pendingTransaction.qty, pendingTransaction.amount);
+        closeStockWarning();
+      }
+    }
+
+    function executeTransaction(pId, qty, amount) {
+      let cogs = 0;
+      let prodName = "";
+      let unitPrice = 0;
+
+      if (pId && qty > 0) {
+        const prod = appData.products.find(p => p.id === pId);
+        if (prod) {
+          prodName = prod.name;
+          unitPrice = (currentTransType === 'PENJUALAN') ? prod.sellPrice : prod.costPrice;
+          cogs = prod.costPrice * qty;
+          if (currentTransType === 'PENJUALAN' || currentTransType === 'BARANG_RUSAK') {
+            prod.stock -= qty;
+          } else if (currentTransType === 'BELANJA_STOK') {
+            prod.stock += qty;
+          }
+        }
+      }
+
+      const record = {
+        id: Date.now(),
+        type: currentTransType,
+        amount: amount,
+        cogs: cogs,
+        timestamp: Date.now(),
+        staffName: currentStaff || 'Kasir',
+        paymentMethod: currentPayment,
+        notes: document.getElementById('transNote').value.trim(),
+        productName: prodName,
+        qty: qty,
+        unitPrice: unitPrice
+      };
+
+      appData.transactions.unshift(record);
+      saveData();
+
+      // Reset
+      document.getElementById('transAmount').value = '';
+      document.getElementById('transNote').value = '';
+      document.getElementById('transProduct').value = '';
+      document.getElementById('qtyWrapper').style.display = 'none';
+
+      // Jika transaksi penjualan, langsung tampilkan modal Nota
+      if (record.type === 'PENJUALAN') {
+        openReceiptModal(record);
+      } else {
+        alert("Transaksi berhasil dicatat!");
+        showScreen('dashboard');
+      }
+    }
+
+    // --- MANAJEMEN NOTA STRUK ---
+    let activeReceiptRecord = null;
+
+    function openReceiptModal(record) {
+      activeReceiptRecord = record;
+      
+      document.getElementById('rcptStoreName').innerText = appData.storeConfig.name;
+      document.getElementById('rcptStoreAddress').innerText = appData.storeConfig.address || "UMKM Kuliner";
+      document.getElementById('rcptStorePhone').innerText = appData.storeConfig.phone ? "Telp: " + appData.storeConfig.phone : "";
+
+      document.getElementById('rcptId').innerText = "#" + String(record.id).slice(-6);
+      document.getElementById('rcptDate').innerText = formatDate(record.timestamp);
+      document.getElementById('rcptStaff').innerText = record.staffName;
+      document.getElementById('rcptPayMethod').innerText = record.paymentMethod;
+      document.getElementById('rcptTotal').innerText = toRupiah(record.amount);
+
+      // Render Item di Nota
+      const itemsContainer = document.getElementById('rcptItems');
+      if (record.productName && record.qty > 0) {
+        itemsContainer.innerHTML = `
+          <div class="receipt-flex" style="font-weight: 600;">
+            <span>${record.productName}</span>
+            <span>${toRupiah(record.amount)}</span>
+          </div>
+          <div style="font-size: 11px; color: #555;">${record.qty} x ${toRupiah(record.unitPrice)}</div>
+        `;
+      } else {
+        itemsContainer.innerHTML = `
+          <div class="receipt-flex">
+            <span>Transaksi Penjualan</span>
+            <span>${toRupiah(record.amount)}</span>
+          </div>
+        `;
+      }
+
+      if (record.notes) {
+        document.getElementById('rcptNotesWrapper').style.display = 'block';
+        document.getElementById('rcptNotes').innerText = record.notes;
+      } else {
+        document.getElementById('rcptNotesWrapper').style.display = 'none';
+      }
+
+      document.getElementById('receiptModal').classList.add('active');
+    }
+
+    function closeReceiptModal() {
+      document.getElementById('receiptModal').classList.remove('active');
+      showScreen('dashboard');
+    }
+
+    function printReceipt() {
+      window.print();
+    }
+
+    function shareReceiptWhatsApp() {
+      if (!activeReceiptRecord) return;
+      const r = activeReceiptRecord;
+      const store = appData.storeConfig;
+      
+      let text = `*${store.name.toUpperCase()}*\n`;
+      if (store.address) text += `${store.address}\n`;
+      if (store.phone) text += `Telp: ${store.phone}\n`;
+      text += `--------------------------------\n`;
+      text += `No. Nota : #${String(r.id).slice(-6)}\n`;
+      text += `Tanggal  : ${formatDate(r.timestamp)}\n`;
+      text += `Kasir    : ${r.staffName}\n`;
+      text += `--------------------------------\n`;
+      if (r.productName && r.qty > 0) {
+        text += `${r.productName}\n${r.qty} x ${toRupiah(r.unitPrice)} = ${toRupiah(r.amount)}\n`;
+      } else {
+        text += `Penjualan = ${toRupiah(r.amount)}\n`;
+      }
+      text += `--------------------------------\n`;
+      text += `*TOTAL BAYAR : ${toRupiah(r.amount)}*\n`;
+      text += `Metode Bayar: ${r.paymentMethod}\n`;
+      if (r.notes) text += `Catatan: ${r.notes}\n`;
+      text += `--------------------------------\n`;
+      text += `Terima kasih atas kunjungannya! 🙏`;
+
+      const waUrl = "https://api.whatsapp.com/send?text=" + encodeURIComponent(text);
+      window.open(waUrl, '_blank');
+    }
+
+    // --- LAPORAN ---
+    let reportDays = 1;
+    let historyViewType = 'ALL';
+
+    function filterReportDays(days, btn) {
+      reportDays = days;
+      if (btn) {
+        btn.parentElement.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      refreshReport();
+    }
+
+    function setHistoryView(viewType, btn) {
+      historyViewType = viewType;
+      if (btn) {
+        btn.parentElement.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      refreshReport();
+    }
+
+    function refreshReport() {
+      const threshold = reportDays === 0 ? 0 : Date.now() - (reportDays * 24 * 60 * 60 * 1000);
+      const filteredByDate = appData.transactions.filter(t => t.timestamp >= threshold);
+
+      let masuk = 0, keluar = 0;
+      let expBelanja = 0, expOps = 0, expRugi = 0;
+
+      filteredByDate.forEach(t => {
+        const val = Number(t.amount);
+        if (t.type === 'PENJUALAN' || t.type === 'PEMASUKAN_LAIN') {
+          masuk += val;
+        } else if (t.type === 'BELANJA_STOK') {
+          keluar += val;
+          expBelanja += val;
+        } else if (t.type === 'OPERASIONAL') {
+          keluar += val;
+          expOps += val;
+        } else if (t.type === 'BARANG_RUSAK') {
+          expRugi += (t.cogs || val);
+        }
+      });
+
+      document.getElementById('repMasuk').innerText = toRupiah(masuk);
+      document.getElementById('repKeluar').innerText = toRupiah(keluar);
+      const selisih = masuk - keluar;
+      const selisihEl = document.getElementById('repSelisih');
+      selisihEl.innerText = toRupiah(selisih);
+      selisihEl.style.color = selisih >= 0 ? 'var(--primary)' : 'var(--danger)';
+
+      document.getElementById('expBelanjaStok').innerText = toRupiah(expBelanja);
+      document.getElementById('expOperasional').innerText = toRupiah(expOps);
+      document.getElementById('expBarangRusak').innerText = toRupiah(expRugi);
+
+      const totalSemuaPengeluaran = expBelanja + expOps + expRugi;
+      if (totalSemuaPengeluaran > 0) {
+        document.getElementById('barStok').style.width = ((expBelanja / totalSemuaPengeluaran) * 100) + '%';
+        document.getElementById('barOps').style.width = ((expOps / totalSemuaPengeluaran) * 100) + '%';
+        document.getElementById('barRugi').style.width = ((expRugi / totalSemuaPengeluaran) * 100) + '%';
+      } else {
+        document.getElementById('barStok').style.width = '0%';
+        document.getElementById('barOps').style.width = '0%';
+        document.getElementById('barRugi').style.width = '0%';
+      }
+
+      let displayList = filteredByDate;
+      if (historyViewType === 'EXPENSE') {
+        displayList = filteredByDate.filter(t => t.type === 'BELANJA_STOK' || t.type === 'OPERASIONAL' || t.type === 'BARANG_RUSAK');
+      } else if (historyViewType === 'INCOME') {
+        displayList = filteredByDate.filter(t => t.type === 'PENJUALAN' || t.type === 'PEMASUKAN_LAIN');
+      }
+
+      const container = document.getElementById('transactionListContainer');
+      if (displayList.length === 0) {
+        container.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 13px;">Tidak ada transaksi di kategori ini.</div>';
+        return;
+      }
+
+      container.innerHTML = displayList.map(t => {
+        const isPlus = t.type === 'PENJUALAN' || t.type === 'PEMASUKAN_LAIN';
+        return `
+          <div class="item-row">
+            <div>
+              <div style="font-weight: 600; font-size: 13px;">${t.type.replace('_', ' ')}</div>
+              <div style="font-size: 11px; color: var(--text-muted);">${formatDate(t.timestamp)} • Kasir: ${t.staffName}</div>
+              ${t.productName ? `<div style="font-size: 11px; color: #333;">${t.productName} (${t.qty}x)</div>` : ''}
+              ${t.notes ? `<div style="font-size: 11px; color: #666;">Ket: ${t.notes}</div>` : ''}
+            </div>
+            <div style="text-align: right;">
+              <div style="font-weight: 700; font-size: 14px; color: ${isPlus ? 'var(--success)' : 'var(--danger)'};">
+                ${isPlus ? '+ ' : '- '}${toRupiah(t.amount)}
+              </div>
+              <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center; margin-top: 4px;">
+                <span style="font-size: 10px; color: var(--text-muted);">${t.paymentMethod}</span>
+                ${t.type === 'PENJUALAN' ? `<button class="chip" style="padding: 2px 8px; font-size: 10px;" onclick="reprintReceipt(${t.id})">Nota</button>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function reprintReceipt(id) {
+      const record = appData.transactions.find(t => t.id === id);
+      if (record) openReceiptModal(record);
+    }
+
+    // --- EKSPOR CSV ---
+    function exportCSV() {
+      if (appData.transactions.length === 0) return alert("Belum ada transaksi untuk diekspor!");
+      let csv = "ID,Tanggal,Jenis_Transaksi,Menu,Jumlah,Nominal,Kasir,Metode_Bayar,Catatan\n";
+      appData.transactions.forEach(t => {
+        csv += `"${t.id}","${formatDate(t.timestamp)}","${t.type}","${t.productName || '-'}","${t.qty || 0}","${t.amount}","${t.staffName}","${t.paymentMethod}","${(t.notes || '').replace(/"/g, '""')}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `KasUsaha_Laporan_${Date.now()}.csv`;
+      a.click();
+    }
+
+    // --- CADANGKAN & PULIHKAN ---
+    function backupJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+      const a = document.createElement('a');
+      a.href = dataStr;
+      a.download = `KasUsaha_Backup_${Date.now()}.json`;
+      a.click();
+    }
+
+    function restoreJSON(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const imported = JSON.parse(evt.target.result);
+          if (imported.products && imported.transactions) {
+            appData = imported;
+            saveData();
+            alert("Pemulihan data cadangan berhasil!");
+            showScreen('dashboard');
+          } else {
+            alert("Format file cadangan tidak valid!");
+          }
+        } catch(err) {
+          alert("Gagal membaca file: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
